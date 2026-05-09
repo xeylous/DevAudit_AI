@@ -59,7 +59,9 @@ async function runPipeline(reviewId, userId, prUrl, accessToken, io) {
 
     const truncatedDiff = diff.length > 15000 ? diff.substring(0, 15000) + '\n... (truncated)' : diff;
 
-    const parseResult = await callGemini(`
+    let parseResult = null;
+    try {
+      parseResult = await callGemini(`
 You are a code review tool. Parse this git diff and return a JSON object.
 
 Git Diff:
@@ -82,6 +84,9 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
   ]
 }
 `);
+    } catch (err) {
+      console.warn('Gemini failed to parse diff, falling back to GitHub API:', err.message);
+    }
 
     let parsedFiles = [];
     if (parseResult && parseResult.files) {
