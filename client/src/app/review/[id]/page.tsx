@@ -28,8 +28,8 @@ import {
 import { Review, Issue } from '@/types';
 import Link from 'next/link';
 
-export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ReviewPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const { user, setUser, token, agentLogs, clearAgentLogs } = useStore();
   const { getReview, postToGitHub } = useReview();
