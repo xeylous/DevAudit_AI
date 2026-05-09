@@ -38,11 +38,10 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   if (this.isModified('accessToken') && this.accessToken && !this.accessToken.includes(':')) {
     this.accessToken = encrypt(this.accessToken);
   }
-  next();
 });
 
 userSchema.methods.getDecryptedToken = function () {
