@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: devaudit-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - devaudit-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: devaudit-redis
+    ports:
+      - '6379:6379'
+    networks:
+      - devaudit-net
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: devaudit-server
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/devaudit
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - devaudit-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: devaudit-client
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    depends_on:
+      - server
+    networks:
+      - devaudit-net
+
+volumes:
+  mongo-data:
+
+networks:
+  devaudit-net:
+    driver: bridge
