@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import ReviewCard from '@/components/ReviewCard';
 import EmptyState from '@/components/EmptyState';
+import { ReviewCardSkeleton } from '@/components/Skeleton';
+import { FadeIn } from '@/components/PageTransition';
 import { useStore } from '@/store/useStore';
 import { useReview } from '@/hooks/useReview';
-import { Toaster } from 'react-hot-toast';
 import api from '@/api/axios';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Review } from '@/types';
 import Link from 'next/link';
 
@@ -47,27 +48,30 @@ export default function Reviews() {
 
   return (
     <div className="min-h-screen bg-gh-bg">
-      <Toaster position="top-right" toastOptions={{ style: { background: '#161b22', color: '#e6edf3', border: '1px solid #30363d' } }} />
       <Sidebar />
 
       <main className="lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gh-text">Review History</h1>
-            <p className="text-sm text-gh-muted mt-1">All your past code reviews</p>
+        <FadeIn>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gh-text tracking-tight">Review History</h1>
+              <p className="text-sm text-gh-muted mt-1">All your past code reviews</p>
+            </div>
+            <Link
+              href="/repositories"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gh-accent hover:bg-gh-accent-hover text-white rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-glow-green active:scale-95"
+            >
+              <Plus size={16} />
+              New Review
+            </Link>
           </div>
-          <Link
-            href="/repositories"
-            className="flex items-center gap-2 px-4 py-2.5 bg-gh-accent hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus size={16} />
-            New Review
-          </Link>
-        </div>
+        </FadeIn>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-gh-accent" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ReviewCardSkeleton key={i} />
+            ))}
           </div>
         ) : reviews.length === 0 ? (
           <EmptyState
@@ -75,7 +79,7 @@ export default function Reviews() {
             action={
               <Link
                 href="/repositories"
-                className="flex items-center gap-2 px-4 py-2 bg-gh-accent hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-gh-accent hover:bg-gh-accent-hover text-white rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-glow-green active:scale-95"
               >
                 <Plus size={16} />
                 Start Your First Review
@@ -84,7 +88,7 @@ export default function Reviews() {
           />
         ) : (
           <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 stagger-enter">
               {reviews.map((review) => (
                 <ReviewCard key={review._id} review={review} />
               ))}
@@ -92,23 +96,44 @@ export default function Reviews() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 text-sm bg-gh-surface border border-gh-border rounded-lg text-gh-text hover:bg-gh-border disabled:opacity-30 transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gh-muted">Page {page} of {totalPages}</span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 text-sm bg-gh-surface border border-gh-border rounded-lg text-gh-text hover:bg-gh-border disabled:opacity-30 transition-colors"
-                >
-                  Next
-                </button>
-              </div>
+              <FadeIn>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="flex items-center gap-1 px-4 py-2 text-sm bg-gh-surface border border-gh-border rounded-xl text-gh-text hover:bg-gh-border disabled:opacity-30 transition-all duration-200 active:scale-95"
+                  >
+                    <ChevronLeft size={14} />
+                    Previous
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+                      const pageNum = i + 1;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setPage(pageNum)}
+                          className={`w-9 h-9 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            page === pageNum
+                              ? 'bg-gh-accent text-white shadow-glow-green'
+                              : 'bg-gh-surface border border-gh-border text-gh-muted hover:text-gh-text hover:bg-gh-border'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="flex items-center gap-1 px-4 py-2 text-sm bg-gh-surface border border-gh-border rounded-xl text-gh-text hover:bg-gh-border disabled:opacity-30 transition-all duration-200 active:scale-95"
+                  >
+                    Next
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </FadeIn>
             )}
           </>
         )}

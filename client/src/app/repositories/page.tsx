@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import EmptyState from '@/components/EmptyState';
+import { RepoCardSkeleton } from '@/components/Skeleton';
+import { FadeIn } from '@/components/PageTransition';
 import { useStore } from '@/store/useStore';
 import { useReview } from '@/hooks/useReview';
-import { Toaster } from 'react-hot-toast';
 import api from '@/api/axios';
 import toast from 'react-hot-toast';
 import {
@@ -34,6 +35,7 @@ export default function Repositories() {
   const [prsLoading, setPrsLoading] = useState(false);
   const [prUrl, setPrUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Auth check + fetch user
   useEffect(() => {
@@ -105,48 +107,58 @@ export default function Repositories() {
 
   return (
     <div className="min-h-screen bg-gh-bg">
-      <Toaster position="top-right" toastOptions={{ style: { background: '#161b22', color: '#e6edf3', border: '1px solid #30363d' } }} />
       <Sidebar />
 
       <main className="lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gh-text">Repositories</h1>
-            <p className="text-sm text-gh-muted mt-1">Select a repository to review a Pull Request</p>
-          </div>
+        <FadeIn>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gh-text tracking-tight">Repositories</h1>
+              <p className="text-sm text-gh-muted mt-1">Select a repository to review a Pull Request</p>
+            </div>
 
-          {/* Search */}
-          <div className="relative w-full sm:w-80">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gh-muted" />
-            <input
-              type="text"
-              placeholder="Search repositories..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gh-bg border border-gh-border rounded-lg text-sm text-gh-text placeholder-gh-muted focus:outline-none focus:ring-1 focus:ring-gh-accent transition-colors"
-            />
+            {/* Search */}
+            <div className={`relative w-full sm:w-80 transition-all duration-300 ${searchFocused ? 'sm:w-96' : ''}`}>
+              <Search
+                size={16}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                  searchFocused ? 'text-gh-accent' : 'text-gh-muted'
+                }`}
+              />
+              <input
+                type="text"
+                placeholder="Search repositories..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gh-bg border border-gh-border rounded-xl text-sm text-gh-text placeholder-gh-muted focus:outline-none focus:ring-2 focus:ring-gh-accent/30 focus:border-gh-accent/50 transition-all duration-200"
+              />
+            </div>
           </div>
-        </div>
+        </FadeIn>
 
         {/* Repo Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-gh-accent" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <RepoCardSkeleton key={i} />
+            ))}
           </div>
         ) : repos.length === 0 ? (
           <EmptyState type="repos" />
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-enter">
             {repos.map((repo) => (
               <div
                 key={repo.id}
-                className="bg-gh-surface border border-gh-border rounded-lg p-5 hover:border-gh-accent/30 transition-all duration-200 group"
+                className="bg-gh-surface border border-gh-border rounded-xl p-5 card-hover group"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <GitBranch size={16} className="text-gh-accent flex-shrink-0" />
-                    <h3 className="text-sm font-semibold text-gh-text truncate">{repo.name}</h3>
+                    <h3 className="text-sm font-semibold text-gh-text truncate group-hover:text-gh-accent transition-colors">{repo.name}</h3>
                   </div>
                   {repo.isPrivate ? (
                     <Lock size={14} className="text-gh-muted flex-shrink-0" />
@@ -156,14 +168,14 @@ export default function Repositories() {
                 </div>
 
                 {repo.description && (
-                  <p className="text-xs text-gh-muted line-clamp-2 mb-4">{repo.description}</p>
+                  <p className="text-xs text-gh-muted line-clamp-2 mb-4 leading-relaxed">{repo.description}</p>
                 )}
 
                 <div className="flex items-center gap-4 mb-4">
                   {repo.language && (
                     <div className="flex items-center gap-1.5">
                       <span className={`w-2.5 h-2.5 rounded-full ${languageColors[repo.language] || 'bg-gh-muted'}`} />
-                      <span className="text-xs text-gh-muted">{repo.language}</span>
+                      <span className="text-xs text-gh-muted font-medium">{repo.language}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-1">
@@ -174,7 +186,7 @@ export default function Repositories() {
 
                 <button
                   onClick={() => openReviewModal(repo)}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gh-accent/10 hover:bg-gh-accent hover:text-white text-gh-accent rounded-lg text-sm font-medium transition-all duration-200 border border-gh-accent/20 hover:border-gh-accent"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gh-accent/10 hover:bg-gh-accent hover:text-white text-gh-accent rounded-xl text-sm font-medium transition-all duration-250 border border-gh-accent/20 hover:border-gh-accent active:scale-[0.97] hover:shadow-glow-green"
                 >
                   <GitPullRequest size={14} />
                   Review a PR
@@ -187,18 +199,24 @@ export default function Repositories() {
 
       {/* PR Review Modal */}
       {selectedRepo && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedRepo(null)}>
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-overlay"
+          onClick={() => setSelectedRepo(null)}
+        >
           <div
-            className="bg-gh-surface border border-gh-border rounded-xl max-w-lg w-full p-6 animate-fade-in"
+            className="bg-gh-surface border border-gh-border rounded-2xl max-w-lg w-full p-6 modal-content shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-gh-text">Review a Pull Request</h3>
-                <p className="text-sm text-gh-muted mt-0.5">{selectedRepo.fullName}</p>
+                <p className="text-sm text-gh-muted mt-0.5 font-mono">{selectedRepo.fullName}</p>
               </div>
-              <button onClick={() => setSelectedRepo(null)} className="text-gh-muted hover:text-gh-text transition-colors">
-                <X size={20} />
+              <button
+                onClick={() => setSelectedRepo(null)}
+                className="p-1.5 hover:bg-gh-border rounded-lg transition-colors text-gh-muted hover:text-gh-text"
+              >
+                <X size={18} />
               </button>
             </div>
 
@@ -211,12 +229,12 @@ export default function Repositories() {
                   placeholder="https://github.com/owner/repo/pull/123"
                   value={prUrl}
                   onChange={(e) => setPrUrl(e.target.value)}
-                  className="flex-1 px-3 py-2.5 bg-gh-bg border border-gh-border rounded-lg text-sm text-gh-text placeholder-gh-muted focus:outline-none focus:ring-1 focus:ring-gh-accent"
+                  className="flex-1 px-4 py-2.5 bg-gh-bg border border-gh-border rounded-xl text-sm text-gh-text placeholder-gh-muted focus:outline-none focus:ring-2 focus:ring-gh-accent/30 focus:border-gh-accent/50 transition-all font-mono"
                 />
                 <button
                   onClick={() => handleStartReview()}
                   disabled={submitting}
-                  className="px-4 py-2.5 bg-gh-accent hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2.5 bg-gh-accent hover:bg-gh-accent-hover text-white rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2 active:scale-95 hover:shadow-glow-green"
                 >
                   {submitting ? <Loader2 size={14} className="animate-spin" /> : <Code size={14} />}
                   Review
@@ -229,23 +247,32 @@ export default function Repositories() {
               <h4 className="text-sm font-medium text-gh-text mb-3">Or select an open PR:</h4>
               {prsLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 size={24} className="animate-spin text-gh-accent" />
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 size={24} className="animate-spin text-gh-accent" />
+                    <span className="text-xs text-gh-muted">Loading pull requests...</span>
+                  </div>
                 </div>
               ) : prs.length === 0 ? (
-                <p className="text-sm text-gh-muted text-center py-4">No open pull requests</p>
+                <p className="text-sm text-gh-muted text-center py-6 bg-gh-bg rounded-xl border border-gh-border/50">
+                  No open pull requests found
+                </p>
               ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {prs.map((pr) => (
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {prs.map((pr, i) => (
                     <button
                       key={pr.number}
                       onClick={() => handleStartReview(pr.url)}
                       disabled={submitting}
-                      className="w-full flex items-center gap-3 p-3 bg-gh-bg hover:bg-gh-border/30 rounded-lg text-left transition-colors disabled:opacity-50"
+                      className="w-full flex items-center gap-3 p-3 bg-gh-bg hover:bg-gh-border/30 rounded-xl text-left transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-gh-accent/20 active:scale-[0.98] group"
+                      style={{
+                        animation: 'staggerFadeInUp 0.3s ease forwards',
+                        animationDelay: `${i * 0.05}s`,
+                      }}
                     >
-                      <GitPullRequest size={16} className="text-gh-accent flex-shrink-0" />
+                      <GitPullRequest size={16} className="text-gh-accent flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gh-text truncate">{pr.title}</p>
-                        <p className="text-xs text-gh-muted">#{pr.number} by {pr.user}</p>
+                        <p className="text-sm text-gh-text truncate group-hover:text-gh-accent transition-colors">{pr.title}</p>
+                        <p className="text-xs text-gh-muted font-mono">#{pr.number} by {pr.user}</p>
                       </div>
                     </button>
                   ))}

@@ -33,14 +33,14 @@ export default function EmptyState({ type = 'default', title, description, actio
   const Icon = config.icon;
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 rounded-full bg-gh-border/30 flex items-center justify-center mb-4">
-        <Icon size={28} className="text-gh-muted" />
+    <div className="flex flex-col items-center justify-center py-20 px-4 animate-fade-in">
+      <div className="w-20 h-20 rounded-2xl bg-gh-surface border border-gh-border flex items-center justify-center mb-6 gentle-float shadow-card">
+        <Icon size={32} className="text-gh-muted" />
       </div>
-      <h3 className="text-lg font-medium text-gh-text mb-1">
+      <h3 className="text-lg font-semibold text-gh-text mb-2">
         {title || config.defaultTitle}
       </h3>
-      <p className="text-sm text-gh-muted text-center max-w-sm mb-6">
+      <p className="text-sm text-gh-muted text-center max-w-sm mb-8 leading-relaxed">
         {description || config.defaultDescription}
       </p>
       {action}
