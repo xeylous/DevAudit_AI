@@ -1,4 +1,4 @@
-# 🛡️ DevAudit AI
+#  DevAudit AI
 
 > **AI-Powered Code Review Platform** — An agentic AI system that reviews GitHub Pull Requests using Google Gemini, catching bugs, security issues, and code smells before they hit production.
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🏗️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
