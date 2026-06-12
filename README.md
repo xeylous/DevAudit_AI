@@ -1,13 +1,6 @@
 #  DevAudit AI
 
 > **AI-Powered Code Review Platform** — An agentic AI system that reviews GitHub Pull Requests using Google Gemini, catching bugs, security issues, and code smells before they hit production.
-
-![DevAudit AI](https://img.shields.io/badge/DevAudit-AI-238636?style=for-the-badge&logo=github&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_2.0-Flash-4285F4?style=flat-square&logo=google&logoColor=white)
-
 ---
 
 ## ✨ Features
